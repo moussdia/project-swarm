@@ -22,12 +22,12 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--entrypoints.http.http.redirections.entryPoint.to=https"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=http"
       - "--certificatesresolvers.myresolver.acme.email=MYEMAIL@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
@@ -51,7 +51,7 @@ services:
       - traefik.port=8081
       - traefik.http.routers.nexus.rule=Host(`NEXUS.mydomain.com`)
       - traefik.enable=true
-      - traefik.http.routers.nexus.entrypoints=websecure
+      - traefik.http.routers.nexus.entrypoints=https
       - traefik.http.routers.nexus.tls=true
       - traefik.http.routers.nexus.tls.certresolver=myresolver
 
