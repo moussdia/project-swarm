@@ -1,0 +1,60 @@
+
+#1. Create a volume directory for nexus-data. I used /nexus-data directory which is mount point of the second disk 
+# mkdir /nexus-data
+# chown -R 200 /nexus-data  #nexus user id 200 in dockerfile
+#Create a letsencrypt directory to store traefik acme.json file which keeps SSL certs
+# mkdir -p /docker/letsencrypt
+
+#Change NEXUS.mydomain.com with your domain name.
+#Change acme.email=MYEMAIL@gmail.com
+
+# cat docker-compose.yml 
+
+version: '3.3'
+
+services:
+  traefik:
+    image: traefik:v2.2
+    container_name: traefik
+    restart: always
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=MYEMAIL@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - nexus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "/docker/letsencrypt:/letsencrypt"
+
+  nexus:
+    container_name: nexus
+    image: sonatype/nexus3
+    restart: always
+    networks:
+      - nexus
+    volumes:
+    - /nexus-data:/nexus-data
+    labels:
+      - traefik.port=8081
+      - traefik.http.routers.nexus.rule=Host(`NEXUS.mydomain.com`)
+      - traefik.enable=true
+      - traefik.http.routers.nexus.entrypoints=websecure
+      - traefik.http.routers.nexus.tls=true
+      - traefik.http.routers.nexus.tls.certresolver=myresolver
+
+networks:
+  nexus:
+    external: true
