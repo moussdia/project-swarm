@@ -1,0 +1,27 @@
+version: '3.7'
+services:
+  gitlab-ce:
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == ${NODE_HOSTNAME:?err}
+    image: gitlab/gitlab-ce:latest
+    hostname: ${GITLAB_HOSTNAME:?err}
+    environment:
+      GITLAB_OMNIBUS_CONFIG: "from_file('/omnibus_config.rb')"
+      configs:
+        - source: gitlab
+          target: /omnibus_config.rb
+    ports:
+      - '443:443'
+      - '80:80'
+      - '8022:22'
+    volumes:
+      - ${VOLUME_PATH:?err}/gitlab/config:/etc/gitlab
+      - ${VOLUME_PATH:?err}/gitlab/data:/var/opt/gitlab
+      - /var/log/gitlab:/var/log/gitlab
+
+configs:
+  gitlab:
+    file: ./gitlab.rb
+
