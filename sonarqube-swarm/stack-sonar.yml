@@ -25,7 +25,7 @@ services:
       - POSTGRES_DB=sonar
     volumes:
       - postgres_data:/var/lib/postgresql/data
-        deploy:
+    deploy:
       placement:
         constraints:
           - node.hostname == minio3.veone.free.ci
