@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+  gitlab:
+    image: gitlab/gitlab-ee:12.6.2-ee.0
+    hostname: gitlab.example.com
+    environment:
+      GITLAB_ROOT_PASSWORD: 'git1ab-p@ssw0rd :)'
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.example.com'
+        registry_external_url 'http://registry.example.com:5005'
+        registry['enable'] = true
+        gitlab_rails['lfs_enabled'] = true
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['pipeline_schedule_worker_cron'] = "*/10 * * * *"
+        gitlab_rails['ldap_enabled'] = true
+        gitlab_rails['ldap_servers'] = YAML.load <<-EOS
+        main:
+          label: 'LDAP'
+          host: '10.10.10.10' #LDAP Server IP Address
+          port: 389
+          uid: 'sAMAccountName'
+          bind_dn: 'CN=GitLab Integration,OU=Service Accounts,DC=example,DC=com'
+          password: 'ldap-p@ssw0rd :)'
+          encryption: 'plain'
+          active_directory: true
+          allow_username_or_email_login: false
+          block_auto_created_users: false
+          base: 'DC=example,DC=com'
+        EOS
+    networks:
+      - ty
+    ports:
+      - '443:443'
+      - '80:80'
+      - '2222:22'
+      - '5005:5005'
+    volumes:
+      - /data/gitlab/config:/etc/gitlab
+      - /data/gitlab/data:/var/opt/gitlab
+      - /var/log/gitlab:/var/log/gitlab
+
+networks:
+  ty:
+    external: true
