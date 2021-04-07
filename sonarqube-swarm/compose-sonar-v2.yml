@@ -7,8 +7,8 @@
 
 ----executer ces commandes sur votre systeme linux-------
 
-sysctl -w vm.max_map_count=524288
-sysctl -w fs.file-max=131072
+sysctl -w vm.max_map_count=524288   #copier vm.max_map_count=524288 dans /etc/sysctl.conf
+sysctl -w fs.file-max=131072    #copier fs.file-max=131072 dans /etc/sysctl.conf
 ulimit -n 131072
 ulimit -u 8192
 
