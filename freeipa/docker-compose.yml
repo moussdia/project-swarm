@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  freeipa:
+    container_name: freeipa
+    image: freeipa/freeipa-server:centos-8
+    restart: always
+    hostname: ipa.agencepme.free.ci
+    environment:
+      - IPA_SERVER_HOSTNAME=ipa.agencepme.free.ci
+    tty: true
+    stdin_open: true
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /opt/data/datafreeipa:/data
+    sysctls:
+      - net.ipv6.conf.lo.disable_ipv6=0
+      - net.ipv6.conf.all.disable_ipv6=0
+    security_opt:
+      - "seccomp:unconfined"
+    command:
+      - -U
+      - --domain=agencepme.free.ci
+      - --realm=agencepme.free.ci
+      - --http-pin=Default@@2245
+      - --dirsrv-pin=Default@@2245
+      - --ds-password=Default@@2245
+      - --admin-password=Default@@2245
+      - --no-host-dns
+      - --no-dnssec-validation
+      - --setup-dns
+      - --auto-forwarders
+      - --auto-reverse
+      - --allow-zone-overlap
+      - --unattended
+    extra_hosts:
+      - "ipa.agencepme.free.ci:192.168.10.10"
+    ports:
+      - "80:80"
+      - "443:443"     
+      - "53:53/udp"
+      - "53:53"
+      - "389:389"
+      - "636:636"
+      - "88:88"
+      - "464:464"
+      - "88:88/udp"
+      - "464:464/udp"
+      - "123:123/udp"
+      - "7389:7389"
+      - "9443:9443"
+      - "9444:9444"
+      - "9445:9445"
+
