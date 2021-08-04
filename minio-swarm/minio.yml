@@ -30,10 +30,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${VOLUME_PATH?err}/letsencrypt:/letsencrypt
 
+
   minio:
     hostname: minio
     image: minio/minio:RELEASE.2021-07-30T00-02-00Z
-    command: 'server --console-address ":9001"' 
+    command: 'server /data --console-address ":9001"'
     expose:
       - "9000"
       - "9001"
@@ -52,10 +53,12 @@ services:
       - "traefik.http.routers.minio.tls=true"
       - "traefik.http.routers.minio.tls.certResolver=letsencrypt"
       - "traefik.http.services.minio.loadbalancer.server.port=9001"
+
     volumes:
       - data1-1:/data1
       - data1-2:/data2
-      
+
 volumes:
   data1-1:
   data1-2:
+
