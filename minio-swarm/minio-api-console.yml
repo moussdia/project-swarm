@@ -47,11 +47,13 @@ services:
       - "traefik.http.routers.api.entrypoints=https"
       - "traefik.http.routers.api.tls=true"
       - "traefik.http.routers.api.tls.certResolver=letsencrypt"
+      - "traefik.http.routers.api.service=api"
       - "traefik.http.services.api.loadbalancer.server.port=9000"
       - "traefik.http.routers.console.rule=Host(`minio.${DOMAIN:?err}`)"
       - "traefik.http.routers.console.entrypoints=https"
       - "traefik.http.routers.console.tls=true"
       - "traefik.http.routers.console.tls.certResolver=letsencrypt"
+      - "traefik.http.routers.console.service=console"
       - "traefik.http.services.console.loadbalancer.server.port=9001"
     volumes:
       - ${VOLUME_PATH:?err}/minio-data:/data
