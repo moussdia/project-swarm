@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  traefik:
+    container_name: traefik
+    command: 
+      - "--api.insecure=true"
+      - "--global.checknewversion=false"
+      - "--global.sendanonymoususage=false"
+      - "--log=true"
+      - "--log.level=INFO"
+      - "--providers.docker=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.http=true"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--entrypoints.http.http.redirections.entrypoint.to=https"
+      - "--entrypoints.http.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@veone.free.ci"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    image: traefik
+    ports:
+      - 80:80
+      - 443:443
+      - ${TRAEFIK_DASHBOARD_PUBLISHED_PORT:-8080}:8080
+    restart: always  
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/keycloak/letsencrypt:/letsencrypt
+  
+  postgres:
+    container_name: postgres
+    depends_on:
+      - traefik
+    image: postgres:11.2-alpine
+    environment:
+      - "POSTGRES_DB=keycloak"
+      - "POSTGRES_USER=keycloak"
+      - "POSTGRES_PASSWORD=datalong"
+      - "POSTGRES_ROOT_PASSWORD=datalong"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    labels:
+      - "traefik.enable=false"
+
+  keycloak:
+    container_name: keycloak
+    image: jboss/keycloak
+    depends_on:
+      - traefik
+      - postgres
+    environment:
+      - DB_VENDOR=POSTGRES
+      - DB_ADDR=postgres
+      - DB_DATABASE=keycloak
+      - DB_PORT=5432
+      - DB_USER=keycloak
+      - DB_SCHEMA=public
+      - DB_PASSWORD=datalong
+      - PROXY_ADDRESS_FORWARDING=true
+      - KEYCLOAK_LOGLEVEL=INFO
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.veone.free.ci`)"
+      - "traefik.http.routers.auth.entrypoints=https"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certResolver=letsencrypt"
+    command: ["-b", "0.0.0.0", "-Dkeycloak.profile.feature.docker=enabled"]
+
